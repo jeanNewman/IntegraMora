@@ -1,0 +1,1062 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Threading;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
+using MahApps.Metro.Behaviours;
+using System.Data.SqlClient;
+using System.Collections;
+using WpfApplication1.message;
+using WpfApplication1.Model;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Data;
+using Microsoft.Reporting;
+using Microsoft.Reporting.WinForms;
+using System.ComponentModel;
+using System.Windows.Media.Animation;
+using System.Configuration;
+
+namespace WpfApplication1
+{
+    /// <summary>
+    /// Interaction logic for menu.xaml
+    /// </summary>
+    /// 
+
+         
+  
+    public partial class menu : MetroWindow
+    {
+
+       
+
+        ObservableCollection<mVentas> venta = new ObservableCollection<mVentas>();
+//        string con = "Server=192.168.1.250; Database=BD1; User Id=jdhades; Password = P4nt3r4--";// ConfigurationManager.ConnectionStrings["administracion"].ConnectionString;
+
+        string con = @"Server=LAYER-PC\TTEST; Database=BD1; User Id=profit; Password = profit";// ConfigurationManager.ConnectionStrings["administracion"].ConnectionString;
+
+       // public string con2 = @"Server=CONTABILIDAD\SQLEXPRESS; Database=SAFC_ECB; User Id=user; Password = user";
+        public string con3 = @"Server=CONTABILIDAD\SQLEXPRESS; Database=master; User Id=user; Password = user";
+         string con2 = @"Server=LAYER-PC\TTEST; Database=SAFC_ECB; User Id=profit; Password = profit";
+        
+        public DataTable dt1;
+      
+        public menu()
+        {
+            
+            InitializeComponent();
+        
+            SqlServerTypes.Utilities.LoadNativeAssemblies(AppDomain.CurrentDomain.BaseDirectory);
+        }
+      
+
+        //private void CreateDynamicProgressBarControl()
+        //{
+        //    ProgressBar PBar2 = new ProgressBar();
+        //    PBar2.IsIndeterminate = false;
+        //    PBar2.Orientation = Orientation.Horizontal;
+        //    PBar2.Width = 200;
+        //    PBar2.Height = 20;
+        //    Duration duration = new Duration(TimeSpan.FromSeconds(20));
+        //    DoubleAnimation doubleanimation = new DoubleAnimation(200.0, duration);
+        //    PBar2.BeginAnimation(ProgressBar.ValueProperty, doubleanimation);
+        //    SBar.Items.Add(PBar2);
+        //}  
+
+
+       
+
+        public bool fillComboBox(string connectionString, System.Windows.Controls.ComboBox combobox, string query, string defaultValue, string itemText, string itemValue)
+        {
+            
+             MessageViewModel mv = new MessageViewModel(); // objeto de la clase mensajes
+            SqlCommand sqlcmd = new SqlCommand();
+            SqlDataAdapter sqladp = new SqlDataAdapter();
+            DataSet ds = new DataSet();
+            try
+            {
+                using (SqlConnection _sqlconTeam = new SqlConnection(connectionString))
+                {
+                    sqlcmd.Connection = _sqlconTeam;
+                    sqlcmd.CommandType = CommandType.Text;
+                    sqlcmd.CommandText = query;
+                    _sqlconTeam.Open();
+                    sqladp.SelectCommand = sqlcmd;
+                    //sqladp.Fill(ds);
+                    sqladp.Fill(ds, "defaultTable");
+                    DataRow nRow = ds.Tables["defaultTable"].NewRow();
+                    //nRow[itemText] = defaultValue;
+                    //nRow[itemValue] = "-1";
+                    ds.Tables["defaultTable"].Rows.InsertAt(nRow, 0);
+                    combobox.DataContext = ds.Tables["defaultTable"].DefaultView;
+
+                    combobox.DisplayMemberPath = itemText;//ds.Tables["defaultTable"].Columns[0].ToString();
+                    combobox.SelectedValuePath = itemValue;
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                mv.Message = mv.ToStringAllExceptionDetails(e);
+                mv.Caption = "Error sql";
+                mv.mensajeria();
+                return false;
+
+            }
+            finally
+            {
+                sqladp.Dispose();
+                sqlcmd.Dispose();
+            }
+        }
+
+        
+        private void CenterWindowsOnScreen()
+        {
+            double screenWidth = System.Windows.SystemParameters.PrimaryScreenWidth;
+            double screenHeight = System.Windows.SystemParameters.PrimaryScreenHeight;
+            double windowWidth = this.Width;
+            double windowHeight = this.Height;
+
+            this.Left = (screenWidth / 2) - (windowWidth / 2);
+            this.Top = (screenHeight / 2) - (windowHeight / 2);
+            
+        }
+
+        private void cerrarVentana(){
+            principal.Width = 424;
+            CenterWindowsOnScreen();
+            flyVentas.IsOpen = false;
+            flyCompras.IsOpen = false;
+            
+        }
+        private void btnVentas_Click(object sender, RoutedEventArgs e)
+        {
+            
+            principal.Width= 1024;
+            CenterWindowsOnScreen();
+            if (flyVentas.IsOpen != true)
+            {
+                flyBancos.IsOpen = false;
+                flyCobros.IsOpen = false;
+                flyCompras.IsOpen = false;
+                flyEliminar.IsOpen = false;
+                flyGastos.IsOpen = false;
+                flyReportesFormasPago.IsOpen = false;
+                flyReportesVentas.IsOpen = false;
+                flyVentas.IsOpen = true;
+
+
+            }
+            //flyVentas.IsOpen = false;
+
+
+
+        }
+
+        private void btnBank_Click(object sender, RoutedEventArgs e)
+        {
+            principal.Width = 1024;
+            CenterWindowsOnScreen();
+            if (flyBancos.IsOpen != true)
+            {
+                flyBancos.IsOpen = true;
+                flyCobros.IsOpen = false;
+                flyCompras.IsOpen = false;
+                flyEliminar.IsOpen = false;
+                flyGastos.IsOpen = false;
+                flyReportesFormasPago.IsOpen = false;
+                flyReportesVentas.IsOpen = false;
+                flyVentas.IsOpen = false;
+
+
+            }
+
+        }
+        private void btnEliminar_Click(object sender, RoutedEventArgs e)
+        {
+            principal.Width = 1024;
+            CenterWindowsOnScreen();
+            if (flyEliminar.IsOpen != true)
+            {
+                flyBancos.IsOpen = false;
+                flyCobros.IsOpen = false;
+                flyCompras.IsOpen = false;
+                flyEliminar.IsOpen = true;
+                flyGastos.IsOpen = false;
+                flyReportesFormasPago.IsOpen = false;
+                flyReportesVentas.IsOpen = false;
+                flyVentas.IsOpen = false;
+
+
+            }
+        }
+        private void btnCobros_Click(object sender, RoutedEventArgs e)
+        {
+            principal.Width = 1024;
+            CenterWindowsOnScreen();
+            if (flyCobros.IsOpen != true)
+            {
+                flyBancos.IsOpen = false;
+                flyCobros.IsOpen = true;
+                flyCompras.IsOpen = false;
+                flyEliminar.IsOpen = false;
+                flyGastos.IsOpen = false;
+                flyReportesFormasPago.IsOpen = false;
+                flyReportesVentas.IsOpen = false;
+                flyVentas.IsOpen = false;
+
+            }
+        }
+        private void btnCompras_Click(object sender, RoutedEventArgs e)
+        {
+            App.Current.Properties["movimientos"] = 1;
+            principal.Width = 1024;
+            CenterWindowsOnScreen();
+           
+            
+               flyBancos.IsOpen = false;
+                flyCobros.IsOpen = false;
+                flyCompras.IsOpen = false;
+                flyCompras.Header = "Integrar Compras";
+                flyEliminar.IsOpen = false;
+                flyGastos.IsOpen = false;
+                flyReportesFormasPago.IsOpen = false;
+                flyReportesVentas.IsOpen = false;
+                flyVentas.IsOpen = false;
+                flyCompras.IsOpen = true;
+
+        }
+        private void btnBuscar_Click(object sender, RoutedEventArgs e)
+        {
+
+
+        }
+        private void btnCompras_Tienda_Click(object sender, RoutedEventArgs e)
+        {
+            App.Current.Properties["movimientos"] = 0;
+            principal.Width = 1024;
+            CenterWindowsOnScreen();
+
+            flyBancos.IsOpen = false;
+            flyCobros.IsOpen = false;
+            flyCompras.IsOpen = false;
+            flyCompras.Header = "Integrar Compras Tiendas";
+            flyEliminar.IsOpen = false;
+            flyGastos.IsOpen = false;
+            flyReportesFormasPago.IsOpen = false;
+            flyReportesVentas.IsOpen = false;
+            flyVentas.IsOpen = false;
+            flyCompras.IsOpen = true;
+
+        }
+        private void btnGastos_Click(object sender, RoutedEventArgs e)
+        {
+            principal.Width = 1024;
+            CenterWindowsOnScreen();
+            if (flyGastos.IsOpen != true)
+            {
+                flyBancos.IsOpen = false;
+                flyCobros.IsOpen = true;
+                flyCompras.IsOpen = false;
+                flyEliminar.IsOpen = false;
+                flyGastos.IsOpen = true;
+                flyReportesFormasPago.IsOpen = false;
+                flyReportesVentas.IsOpen = false;
+                flyVentas.IsOpen = false;
+
+
+            }
+
+        }
+
+        private void mItemVentas_Click(object sender, RoutedEventArgs e)
+        {
+            this.btnReporteVenta.Content = "VENTAS";
+            this.flyReportesVentas.Header = "REPORTE DE VENTAS";
+            principal.Width = 1024;
+            CenterWindowsOnScreen();
+          
+                flyBancos.IsOpen = false;
+                flyCobros.IsOpen = true;
+                flyCompras.IsOpen = false;
+                flyEliminar.IsOpen = false;
+                flyGastos.IsOpen = false;
+                flyReportesFormasPago.IsOpen = false;
+                flyReportesVentas.IsOpen = false;
+                flyVentas.IsOpen = false;
+                flyReportesVentas.IsOpen = true;
+
+
+
+        }
+
+        private void mItemEntradasGuias_Click(object sender, RoutedEventArgs e)
+        {
+            this.btnReporteVenta.Content = "GUIA";
+            this.flyReportesVentas.Header = "REPORTE DE ENTRADAS GUIAS";
+            principal.Width = 1024;
+            CenterWindowsOnScreen();
+            flyBancos.IsOpen = false;
+            flyCobros.IsOpen = true;
+            flyCompras.IsOpen = false;
+            flyEliminar.IsOpen = false;
+            flyGastos.IsOpen = false;
+            flyReportesFormasPago.IsOpen = false;
+            flyReportesVentas.IsOpen = false;
+            flyVentas.IsOpen = false;
+            flyReportesVentas.IsOpen = true;
+        }
+
+        private void flyCompras_ClosingFinished(object sender, RoutedEventArgs e)
+        {
+         
+            
+        }
+
+        private void flyVentas_ClosingFinished(object sender, RoutedEventArgs e)
+        {
+       
+        }
+
+
+        private void mItemRptFormaPago_Click(object sender, RoutedEventArgs e)
+        {
+            principal.Width = 1024;
+            CenterWindowsOnScreen();
+            //flyVentas.IsOpen = false;
+            flyBancos.IsOpen = false;
+            flyCobros.IsOpen = true;
+            flyCompras.IsOpen = false;
+            flyEliminar.IsOpen = false;
+            flyGastos.IsOpen = false;
+            flyReportesFormasPago.IsOpen = true;
+            flyReportesVentas.IsOpen = false;
+            flyVentas.IsOpen = false;
+       
+            string sql = "select codformapago id, descripcion descrip from formaspago";
+           fillComboBox(con, cbReporteFpTienda, sql, null, "descrip", "id");
+        }
+
+     
+
+        private void cmbFecha_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            venta.Clear();
+            
+            int check = rbMiraflores.IsChecked == true ? 1 : rbEncalada.IsChecked == true ? 2 : 3;
+            ComboBox cb = sender as ComboBox;
+            string data = cb.SelectedValue ==null?"": cb.SelectedValue.ToString();
+            if (data != "")
+            {
+                DataContext = this.agregarData(data, con, check, sender);
+                
+
+            }
+        }
+
+         public ObservableCollection<mVentas> agregarData(string data, string con,int codTienda,object sender)
+        {
+
+            
+             MessageViewModel mv = new MessageViewModel();
+           // DataGrid dgv1 = dgVenta as DataGrid;
+            ComboBox cb = sender as ComboBox;
+            string fechaDia = cb.SelectedValue.ToString();
+            decimal total = 0;
+            string tienda;
+            string buscarTienda;
+            if (codTienda == 1)
+            {
+                tienda = "B001";
+                buscarTienda = "01";
+
+            }
+            else if (codTienda == 2)
+            {
+                tienda = "B002";
+                buscarTienda = "02";
+
+            }
+            else if (codTienda == 3)
+            {
+                tienda = "B003";
+                buscarTienda = "05";
+
+            }
+            else
+            {
+                tienda = "B004";
+                buscarTienda = "05";
+
+            }
+
+
+        string sql;
+            try
+            {   
+                Conexion cn = new Conexion(con);
+                sql = @"SELECT A.NUMFACTURA AS NUMERO,0 AS total,0 as totiva,0 as totreq, 0 as baseimponibre FROM FACTURASVENTA AS A
+                        where a.FECHAENTRADA = '" + fechaDia + "' and a.NUMSERIE = '" + tienda + "' and a.TOTALNETO = 0 ";
+                sql = sql +@" union 
+                        SELECT numero,total,totiva,totreq,baseimponible 
+                        from FACTURASVENTA b  right outer join FACTURASVENTATOT a on a.NUMERO = b.NUMFACTURA and a.SERIE = b.NUMSERIE
+                        where b.FECHAENTRADA = '" + fechaDia + "' and a.SERIE = '" + tienda + "'  order by NUMERO";
+                SqlDataReader reader = cn.consulta3(sql);
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+
+                        venta.Add(new mVentas("12121", buscarTienda, (reader.GetInt32(0)).ToString(), Convert.ToDecimal(reader.GetValue(1)), 0) { cuenta = "12121", serie = buscarTienda, numero = (reader.GetInt32(0)).ToString(), debe = Convert.ToDecimal(reader.GetValue(1)), haber = 0 });
+                        venta.Add(new mVentas("40111", buscarTienda, (reader.GetInt32(0)).ToString(), 0, Convert.ToDecimal(reader.GetValue(2))) { cuenta = "40111", serie = buscarTienda, numero = (reader.GetInt32(0)).ToString(), debe = 0, haber = Convert.ToDecimal(reader.GetValue(2)) });
+                        venta.Add(new mVentas("40997", buscarTienda, (reader.GetInt32(0)).ToString(), 0, Convert.ToDecimal(reader.GetValue(3))) { cuenta = "40997", serie = buscarTienda, numero = (reader.GetInt32(0)).ToString(), debe = 0, haber = Convert.ToDecimal(reader.GetValue(3)) });
+                        venta.Add(new mVentas("40111", buscarTienda, (reader.GetInt32(0)).ToString(), 0, Convert.ToDecimal(reader.GetValue(4))) { cuenta = "70111", serie = buscarTienda, numero = (reader.GetInt32(0)).ToString(), debe = 0, haber = Convert.ToDecimal(reader.GetValue(4)) });
+
+                    }
+                    total = venta.Sum(x => x.cuenta == "12121" ? x.debe : 0);
+                }
+                
+            }
+            catch (Exception e)
+            {
+                mv.Message = mv.ToStringAllExceptionDetails(e);
+                mv.Caption = "Error sql";
+                mv.mensajeria();
+
+            }
+            return venta;
+    }
+
+         private void btnSincronizar_Click(object sender, RoutedEventArgs e)
+         {
+             Integracion ni = new Integracion();
+             cmbFecha.Items.Clear();
+             
+             
+             DateTime inicio = DateTime.Parse(dpFechaIni.Text);
+             DateTime final = DateTime.Parse(dpFechaFin.Text);
+             TimeSpan dias = final - inicio;
+             
+             // HAY QUE CAMBIAR TODA ESTA VERGA PARA REDUCIR CODIGO
+             for (DateTime i = inicio; i <= final; i = i.AddDays(1))
+             {
+                // CreateDynamicProgressBarControl();
+                // mpd.Command.Execute(null);
+
+                 if (dias.Days > 31)
+                 {
+                     MessageBoxResult result = MessageBox.Show("La diferencia entre fecha es mayor a 30 dias desea continuar?", "Advertencia", MessageBoxButton.OK, MessageBoxImage.Warning);
+                     if (result == MessageBoxResult.OK)
+                     {
+                         i = final;
+                     }
+
+                 }
+                 else
+                 {
+                     ni.verficarVentas(i.ToString("yyyyMMdd"), con, con2);
+                 }
+
+                 //cmbFecha.Items.Add(i.ToString("yyyyMMdd"));
+                 //cmb.DataContext = tab;
+                 //tcGeneral.SelectedIndex = 0;
+
+             }
+         }
+
+         private void btncSincronizar_Click(object sender, RoutedEventArgs e)
+         {
+             Integracion ni = new Integracion();
+             cmbcFecha.Items.Clear();
+            
+            
+             DateTime inicio = DateTime.Parse(dpcFechaIni.Text);
+             DateTime final = DateTime.Parse(dpcFechaFin.Text);
+             TimeSpan dias = final - inicio;
+             for (DateTime i = inicio; i <= final; i = i.AddDays(1))
+             {
+                // CreateDynamicProgressBarControl();
+                 if (dias.Days > 31)
+                 {
+                     MessageBoxResult result = MessageBox.Show("La diferencia entre fecha es mayor a 30 dias desea continuar?", "Advertencia", MessageBoxButton.OK, MessageBoxImage.Warning);
+                     if (result == MessageBoxResult.OK)
+                     {
+                         i = final;
+                     }
+
+                 }
+                 else
+                 {
+                     ni.verficarCobros(i.ToString("yyyyMMdd"), con, con2);
+                 }
+
+                 //cmbFecha.Items.Add(i.ToString("yyyyMMdd"));
+                 //cmb.DataContext = tab;
+                 //tcGeneral.SelectedIndex = 0;
+
+             }
+         }
+
+         private void flyPayment_ClosingFinished(object sender, RoutedEventArgs e)
+         {
+           
+         }
+
+         private void cmbpFecha_SelectionChanged(object sender, SelectionChangedEventArgs e)
+         {
+
+         }
+
+         private void btnpSincronizar_Click(object sender, RoutedEventArgs e)
+         {
+             Integracion ni = new Integracion();
+            
+             DateTime inicio = DateTime.Parse(dppFechaIni.Text);
+             DateTime final = DateTime.Parse(dppFechaFin.Text);
+             TimeSpan dias = final - inicio;
+             
+             // HAY QUE CAMBIAR TODA ESTA VERGA PARA REDUCIR CODIGO
+             for (DateTime i = inicio; i <= final; i = i.AddDays(1))
+             {
+                 if (dias.Days > 31)
+                 {
+                     MessageBoxResult result = MessageBox.Show("La diferencia entre fecha es mayor a 30 dias desea continuar?", "Advertencia", MessageBoxButton.OK, MessageBoxImage.Warning);
+                     if (result == MessageBoxResult.OK)
+                     {
+                         i = final;
+                     }
+
+                 }
+                 else
+                 {
+                     ni.verificarCompras(i.ToString("yyyyMMdd"), TbSecuencia.Text,TbCentroCosto.Text, con, con2);
+                 }
+
+             }
+         }
+
+         private void principal_Closed(object sender, EventArgs e)
+         {
+             
+             principal.Close();
+             GC.Collect();
+         }
+
+         private void principal_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+         {
+             App.Current.Shutdown();
+             GC.Collect();
+         }
+
+         
+         private void cbPeriodo_Initialized(object sender, EventArgs e)
+         {
+             var americanCulture = new CultureInfo("en-US");
+             List<string> names = new List<string>();
+             int num = 1;
+             foreach (var item in americanCulture.DateTimeFormat.MonthNames.Take(12))
+             {
+                 cbPeriodo.Items.Add(string.Format("{0} - {1}", num++.ToString("D2"), item));
+             }
+             
+         }
+
+         private void flyEliminar_ClosingFinished(object sender, RoutedEventArgs e)
+         {
+             {
+                 principal.Width = 424;
+                 CenterWindowsOnScreen();
+                 flyEliminar.IsOpen = false;
+                 flyEliminar.IsOpen = false;
+                 vYear.Text = "";
+                 vHasta.Text = "";
+                 vDesde.Text = "";
+                 cbPeriodo.Text = "";
+                 cbLibro.Text = "";
+                 dgEliminar.ItemsSource = null;
+                 
+             }
+         }
+
+         private void Button_Click(object sender, RoutedEventArgs e)
+         {
+             MessageViewModel mv = new MessageViewModel(); // objeto de la clase mensajes
+             ComboBoxItem typeItem = (ComboBoxItem)cbLibro.SelectedItem;
+
+
+             string vPeriodo = cbPeriodo.Text == ""?"":cbPeriodo.Text.Substring(0,2);//.SelectedItem.ToString().Substring(0, 2) == "" ? "" : cbPeriodo.SelectedItem.ToString().Substring(0, 2);
+             string vLibro = cbLibro.Text == ""?"":cbLibro.Text.Substring(0, 2); //typeItem.Content.ToString().Substring(0, 2) == "" ? "" : typeItem.Content.ToString().Substring(0, 2);
+
+            
+             if (vDesde.Text != "" && vHasta.Text != "" && vYear.Text != "" && vPeriodo != "" && vLibro != "")
+             {
+                 FillDataGrid(vDesde.Text, vHasta.Text, vYear.Text, vPeriodo, vLibro, con, con2);
+             }
+             else
+             {
+                 mv.Message = "No Puede haber Campos Vacios";
+                 mv.Caption = "Campos Vacios";
+                 mv.mensajeria();
+             }
+             
+         }
+
+         /// <summary>
+        /// Eliminar asientos malos
+        /// </summary>
+        /// <param name="vDesde"></param>
+        /// <param name="vHasta"></param>
+        /// <param name="vYear"></param>
+        /// <param name="vPeriodo"></param>
+        /// <param name="vLibro"></param>
+        /// <param name="conex1"></param>
+        /// <param name="conex2"></param>
+        public void FillDataGrid(string vDesde, string vHasta, string vYear, string vPeriodo, string vLibro, string conex1, string conex2)
+        {
+            MessageViewModel mv = new MessageViewModel(); // objeto de la clase mensajes
+            string CmdString = string.Empty;
+            try
+            {
+                using (SqlConnection con = new SqlConnection(conex2))
+                {
+                    CmdString = @"SELECT  Pan_cAnio as vyear, Per_cPeriodo as periodo, Lib_cTipoLibro as libro , Ase_nVoucher as asiento, Ase_dFecha as fecha, Ase_cGlosa as glosa
+                             FROM CNC_ASIENTO_VOUCHER
+                             WHERE (Emp_cCodigo = '003') AND  Ase_nVoucher BETWEEN '" +
+                                 vDesde + "' and '" + vHasta + "' and Pan_cAnio = '" +
+                                 vYear + "' and Per_cPeriodo = '" + vPeriodo + "' and Lib_cTipoLibro =  '" + vLibro + "'";
+                    SqlCommand cmd = new SqlCommand(CmdString, con);
+                    con.Open();
+                    SqlDataAdapter sda = new SqlDataAdapter(cmd);
+                    
+                    
+                        DataTable dt = new DataTable();
+                        sda.Fill(dt);
+                        if (dt.Rows.Count > 0)
+                        {
+                            dgEliminar.ItemsSource = dt.DefaultView;
+                            //dt.DefaultView.
+                            eliminar.IsEnabled = true;
+                        }
+                        else
+                        {
+                            mv.Message = "No se encontro Registro, Por favor verifique";
+                            mv.Caption = "No hay Registro";
+                            mv.mensajeria();
+                        }
+
+
+                        con.Close();
+
+
+                }
+            }
+            catch (Exception e)
+            {
+                mv.Message = mv.ToStringAllExceptionDetails(e);
+                mv.Caption = "Error sql";
+                mv.mensajeria();
+                
+            }
+        }
+
+        private void eliminar_Click(object sender, RoutedEventArgs e)
+        {
+            ComboBoxItem typeItem = (ComboBoxItem)cbLibro.SelectedItem;
+
+            string vPeriodo = cbPeriodo.SelectedItem.ToString().Substring(0, 2);
+            string vLibro = typeItem.Content.ToString().Substring(0, 2);
+
+               // Display a message box asking users if they
+           // want to exit the application.
+            MessageBoxResult result = MessageBox.Show(@"Esta Seguro que desea ELIMINAR esta informacion Asientos Desde: " +
+                                                     vDesde.Text+" Hasta: "+vHasta.Text+" Año: "+ vYear.Text + " Periodo: " + vPeriodo + " Libro: " + vLibro 
+                                                     , "ELIMINAR ASIENTOS", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                // Do this
+                   eliminarData(vDesde.Text, vHasta.Text, vYear.Text, vPeriodo, vLibro, con2);
+            }else{
+                eliminar.IsEnabled = false;
+            }
+            
+        }
+
+        private void realizarBackup()
+        {
+            MessageViewModel mv = new MessageViewModel(); // objeto de la clase mensajes
+            string location = @"D:\MEGA\";
+            string dbase = @"SAFC_ECB";
+            try
+            {
+                using (SqlConnection cn = new SqlConnection(con3))
+                {
+                    cn.Open();
+
+                    SqlCommand cmd = new SqlCommand("sp_BackupDatabases", cn);
+                    cmd.CommandTimeout = 240;
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@backupLocation", location);
+                    cmd.Parameters.AddWithValue("@databaseName", dbase);
+                    cmd.Parameters.AddWithValue("@backupType", 'F');
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+                    cn.Close();
+
+                }
+            }
+            catch (Exception e)
+            {
+                mv.Message = mv.ToStringAllExceptionDetails(e);
+                mv.Caption = "Error sql";
+                mv.mensajeria();
+
+            }
+        }
+        
+        private void eliminarData(string p1, string p2, string p3, string vPeriodo, string vLibro,  string con2)
+        {
+           
+            string CmdString = @"DELETE FROM CNC_ASIENTO_VOUCHER
+                                 WHERE (Emp_cCodigo = '003') AND  Ase_nVoucher BETWEEN '" +
+                                 p1 + "' and '" + p2 + "' and Pan_cAnio = '" +
+                                 p3 + "' and Per_cPeriodo = '" + vPeriodo + "' and Lib_cTipoLibro =  '" + vLibro + "'";
+          //  CreateDynamicProgressBarControl();
+            realizarBackup();
+            MessageViewModel mv = new MessageViewModel(); // objeto de la clase mensajes
+            try
+            {
+              Conexion con = new Conexion(con2);
+               if(con.Eliminar(CmdString)){
+
+                   dgEliminar.ItemsSource = null;
+                      vYear.Text = "";
+                      vHasta.Text = "";
+                      vDesde.Text = "";
+                      cbPeriodo.Text = "";
+                      cbLibro.Text = ""; 
+                   mv.Message = "Se realizo la eliminacion de forma satisfactoria";
+                        mv.Caption = "No hay Registro";
+                        mv.mensajeria();
+               }
+
+            }
+             catch (Exception e)
+            {
+                mv.Message = mv.ToStringAllExceptionDetails(e);
+                mv.Caption = "Error sql";
+                mv.mensajeria();
+
+            }
+        }
+
+        private void btnGastosSincronizar_Click(object sender, RoutedEventArgs e)
+        {
+             Integracion ni = new Integracion();
+             cmbcFecha.Items.Clear();
+
+             ComboBoxItem tab = new ComboBoxItem();
+             DateTime inicio = DateTime.Parse(dpcFechaIni.Text);
+             DateTime final = DateTime.Parse(dpcFechaFin.Text);
+             TimeSpan dias = final - inicio;
+             for (DateTime i = inicio; i <= final; i = i.AddDays(1))
+             {
+                 if (dias.Days > 31)
+                 {
+                     MessageBoxResult result = MessageBox.Show("La diferencia entre fecha es mayor a 30 dias desea continuar?", "Advertencia", MessageBoxButton.OK, MessageBoxImage.Warning);
+                     if (result == MessageBoxResult.OK)
+                     {
+                         i = final;
+                     }
+
+                 }
+                 else
+                 {
+                     ni.verificarGastos(i.ToString("yyyyMMdd"),i, final,con, con2);
+                 }
+
+                 //cmbFecha.Items.Add(i.ToString("yyyyMMdd"));
+                 //cmb.DataContext = tab;
+                 //tcGeneral.SelectedIndex = 0;
+
+             }
+         }
+
+        private void btnReporteVenta_Click(object sender, RoutedEventArgs e)
+        {
+            string sp = "OWN_RPT_VENTAS_CONTABILIDAD";
+            string reporte = "Report1.rdlc";
+            string dato = this.btnReporteVenta.Content.ToString();
+            if (dato =="GUIA")
+            {
+                sp = "OWN_RPT_VENTAS_ENTRADAS_GUIAS_TIENDA";
+                reporte = "Report3.rdlc";
+
+            }
+
+            DateTime inicio = DateTime.Parse(rVentasFechaIni.Text);
+            DateTime final = DateTime.Parse(rVentasFechaFin.Text);
+            string tienda = cbTienda.Text;
+            rvVentasConta.Reset();
+            DataTable dt = GetData(sp,inicio.ToString("yyyyMMdd"), final.ToString("yyyyMMdd"), tienda, con);
+            ReportDataSource ds = new ReportDataSource("DataSet1", dt);
+            rvVentasConta.LocalReport.DataSources.Add(ds);
+            rvVentasConta.LocalReport.ReportPath = reporte;
+            //rvVentasConta.LocalReport.ReportEmbeddedResource = "Report1.rdlc";
+            rvVentasConta.RefreshReport();
+
+        }
+
+        private DataTable GetData(string sp, string ini, string fin, string tienda, string conex1 )
+        {
+            MessageViewModel mv = new MessageViewModel(); // objeto de la clase mensajes
+            DataTable dt = new DataTable();
+            try
+            {
+                using (SqlConnection cn = new SqlConnection(conex1))
+                {
+                    SqlCommand cmd = new SqlCommand(sp, cn);
+                    cmd.Parameters.Add("@FECHA_INI", SqlDbType.VarChar).Value= ini;
+                    cmd.Parameters.Add("@FECHA_FIN", SqlDbType.VarChar).Value = fin;
+                    cmd.Parameters.Add("@TIENDA", SqlDbType.VarChar).Value = tienda;
+                    cmd.CommandTimeout = 0;
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    
+                    SqlDataAdapter adp = new SqlDataAdapter(cmd);
+                    adp.Fill(dt);
+
+                }
+                
+            }
+            catch (Exception e)
+            {
+                mv.Message = mv.ToStringAllExceptionDetails(e);
+                mv.Caption = "Error sql";
+                mv.mensajeria();
+
+            }
+            return dt;
+        }
+
+        private void cbReporteFpTienda_Initialized(object sender, EventArgs e)
+        {
+            
+        }
+
+        private DataTable GetDataFp(string ini, string fin,string formaPago, string tienda, string conex1)
+        {
+            MessageViewModel mv = new MessageViewModel(); // objeto de la clase mensajes
+            DataTable dt = new DataTable();
+            try
+            {
+                using (SqlConnection cn = new SqlConnection(conex1))
+                {
+                    SqlCommand cmd = new SqlCommand("OWN_RPT_VENTAS_FORMAS_PAGO", cn);
+                    cmd.Parameters.Add("@FECHA_INI", SqlDbType.VarChar).Value = ini;
+                    cmd.Parameters.Add("@FECHA_FIN", SqlDbType.VarChar).Value = fin;
+
+                    cmd.Parameters.Add("@TIENDA", SqlDbType.VarChar).Value = tienda;
+                    cmd.Parameters.Add("@FORMAPAGO", SqlDbType.VarChar).Value = formaPago;
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandTimeout = 0;
+                    SqlDataAdapter adp = new SqlDataAdapter(cmd);
+                    adp.Fill(dt);
+
+                }
+
+            }
+            catch (Exception e)
+            {
+                mv.Message = mv.ToStringAllExceptionDetails(e);
+                mv.Caption = "Error sql";
+                mv.mensajeria();
+
+            }
+            return dt;
+        }
+
+        private void btnReporteFormaPago_Click(object sender, RoutedEventArgs e)
+        {
+            DateTime inicio = DateTime.Parse(rFpFechaIni.Text);
+            DateTime final = DateTime.Parse(rFpFechaFin.Text);
+            string tienda = cbReporteTienda.Text;
+            string formaPago = (string)cbReporteFpTienda.SelectedValue;
+            //string exeFolder = (System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.StartupPath)).Substring(0, (System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.StartupPath)).Length - 3);
+            string reportPath = ("Report2.rdlc");
+
+            //string formaPago = cbReporteFpTienda.Text;
+            rvFormaPago.Reset();
+            DataTable dt = GetDataFp(inicio.ToString("yyyyMMdd"), final.ToString("yyyyMMdd"), formaPago, tienda, con);
+            ReportDataSource ds = new ReportDataSource("DataSet2", dt);
+            rvFormaPago.LocalReport.DataSources.Add(ds);
+            rvFormaPago.LocalReport.ReportPath = reportPath;
+            rvFormaPago.RefreshReport();
+        }
+
+        private void conexionDB_Click(object sender, RoutedEventArgs e)
+        {
+            ConexionBaseDatos subWindows = new ConexionBaseDatos();
+            subWindows.Show();
+        }
+
+        private void mItemCreaTXT_Click(object sender, RoutedEventArgs e)
+        {
+            string sql = @"select
+                         '02' + PC.ENTIDAD + REPLICATE(' ',(20 - LEN(PC.ENTIDAD))) + AC.TIPO_DOCUMENTOP +
+                         (ac.SERIE_DOC+'-'+a.SUALBARAN) COLLATE Modern_Spanish_CS_AS + REPLICATE (' ',(20 - LEN((ac.SERIE_DOC+'-'+a.SUALBARAN) COLLATE Modern_Spanish_CS_AS)))  + 
+                        CONVERT(varchar,a.FECHAALBARAN , 112)  + '01' +  REPLICATE('0', (15 - LEN( CONVERT(VARCHAR,REPLACE (a.TOTALNETO,'.',''))))) + CONVERT(varchar,REPLACE (a.TOTALNETO,'.',''))+' ' + 
+                        '09001012000012345678' + REPLICATE(' ',(30 - LEN('09001012000012345678'))) +
+                        'P'+'02'+ p.NIF20 + REPLICATE(' ',(15 - LEN(p.NIF20))) DATO4,
+                        p.NOMPROVEEDOR + REPLICATE(' ',(83 - LEN(p.NOMPROVEEDOR))) DATO5, --+ 
+                        p.TELEFONO1 + REPLICATE(' ',(40 - LEN(p.TELEFONO1))) DATO6,
+                        + p.E_MAIL + REPLICATE(' ',(140 - LEN(p.E_MAIL))) DATO7
+
+                        from ALBCOMPRACAB a inner join proveedores p on a.codproveedor = p.CODPROVEEDOR left join ALBCOMPRACAMPOSLIBRES ac on a.NUMALBARAN = ac.NUMALBARAN and a.NUMSERIE = ac.NUMSERIE left join PROVEEDORESCAMPOSLIBRES pc on p.CODPROVEEDOR = pc.CODPROVEEDOR where a.FECHAALBARAN between '20190901' and '20190915' and upper(ac.TIPO_DOCUMENTOP) = 'F'";
+                                    //string strFilePath = @"D:\Visual\ARCHIVO.CSV";
+
+            try
+            {
+                DataTable dt = new DataTable();
+                FileStream Query = new FileStream("C:/Users/genesis/Desktop/sol/datosQuery.txt", FileMode.Append, FileAccess.Write);
+                StreamWriter sw = new StreamWriter(Query,Encoding.UTF8);
+                Conexion cn = new Conexion(con);
+                dt = cn.conasultar2(sql,"txtTabla"); 
+
+               //  StreamWriter sw = new StreamWriter(strFilePath, false, Encoding.UTF8);
+                //copiar encabezados de la consulta
+
+                long cantidadColumnas = dt.Columns.Count;
+
+                //for (int ncolumna = 0; ncolumna < cantidadColumnas; ncolumna++)
+                //{
+                //    sw.Write(dt.Columns[ncolumna]);
+                //    if (ncolumna < cantidadColumnas - 1)
+                //    {
+                //        sw.Write(" ");
+                //    }
+                //}
+                //sw.Write(sw.NewLine); //saltamos linea
+
+
+                // copiar info linea por linea
+                foreach (DataRow renglon in dt.Rows)
+                {
+                    for (int ncolumna = 0; ncolumna < cantidadColumnas; ncolumna++)
+                    {
+                        if (!Convert.IsDBNull(renglon[ncolumna]))
+                        {
+                            sw.Write(renglon[ncolumna]);
+                        }
+                        if (ncolumna < cantidadColumnas)
+                        {
+                            sw.Write('\t');
+                        }
+                    }
+                    sw.Write(sw.NewLine); //saltamos linea
+                }
+                sw.Close();
+               
+            }
+            catch (Exception r)
+            {
+                
+                MessageBox.Show(r.Message);
+            }
+
+        }
+
+        private DataTable GetDataGT(string ini, string fin, string tienda, string conex1)
+        {
+            MessageViewModel mv = new MessageViewModel(); // objeto de la clase mensajes
+            DataTable dt = new DataTable();
+            try
+            {
+                using (SqlConnection cn = new SqlConnection(conex1))
+                {
+                    SqlCommand cmd = new SqlCommand("OWN_RPT_VENTAS_ENTRADAS_GUIAS_TIENDA", cn);
+                    cmd.Parameters.Add("@FECHA_INI", SqlDbType.VarChar).Value = ini;
+                    cmd.Parameters.Add("@FECHA_FIN", SqlDbType.VarChar).Value = fin;
+                    cmd.Parameters.Add("@TIENDA", SqlDbType.VarChar).Value = tienda;
+                    cmd.CommandTimeout = 0;
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    SqlDataAdapter adp = new SqlDataAdapter(cmd);
+                    adp.Fill(dt);
+
+                }
+
+            }
+            catch (Exception e)
+            {
+                mv.Message = mv.ToStringAllExceptionDetails(e);
+                mv.Caption = "Error sql";
+                mv.mensajeria();
+
+            }
+            return dt;
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            new Import().ImportarExcel(DgvImportBancos, "TIENDA",ref dt1);
+
+        }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            Integracion ni = new Integracion();
+            string tienda = cbTiendaBanco.Text;
+            string moneda = cbMoneda.Text;
+            ni.VerficarBancos(DgvImportBancos, con, con2, dt1,tienda,moneda);
+        }
+
+        private void Principal_Loaded(object sender, RoutedEventArgs e)
+        {
+            int newValue = 424;
+            int newValue1 = 0;
+            Canvas.SetLeft(flyBancos, newValue);
+            Canvas.SetLeft(flyCobros, newValue);
+            Canvas.SetLeft(flyCompras, newValue);
+            Canvas.SetLeft(flyEliminar, newValue);
+            Canvas.SetLeft(flyGastos, newValue);
+            Canvas.SetLeft(flyReportesFormasPago, newValue);
+            Canvas.SetLeft(flyReportesVentas, newValue);
+            Canvas.SetLeft(flyVentas, newValue);
+
+            Canvas.SetTop(flyBancos, newValue1);
+            Canvas.SetTop(flyCobros, newValue1);
+            Canvas.SetTop(flyCompras, newValue1);
+            Canvas.SetTop(flyEliminar, newValue1);
+            Canvas.SetTop(flyGastos, newValue1);
+            Canvas.SetTop(flyReportesFormasPago, newValue1);
+            Canvas.SetTop(flyReportesVentas, newValue1);
+            Canvas.SetTop(flyVentas, newValue1);
+
+
+        }
+
+       
+    }
+    
+
+       
+             
+            
+    
+        
+    
+}

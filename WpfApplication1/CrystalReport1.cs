@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace KardexMora {
+namespace WpfApplication1 {
     using System;
     using System.ComponentModel;
     using CrystalDecisions.Shared;
@@ -41,7 +41,7 @@ namespace KardexMora {
         
         public override string FullResourceName {
             get {
-                return "KardexMora.CrystalReport1.rpt";
+                return "WpfApplication1.CrystalReport1.rpt";
             }
             set {
                 // Do nothing
